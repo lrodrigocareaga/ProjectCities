@@ -1,0 +1,109 @@
+---
+title: 'Linear regression: Experiment 1'
+author: "Ana Real"
+date: "March 19, 2019"
+output: 
+  html_document:
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## First Panel Data Experiment.
+
+For this we are going to use the five years.
+
+### Reading the data.
+
+```{r read, cache=TRUE}
+library(xlsx)
+d2014 <- read.xlsx2("best_cities.xlsx", sheetIndex = 5)
+d2015 <- read.xlsx2("best_cities.xlsx", sheetIndex = 4)
+d2016 <- read.xlsx2("best_cities.xlsx", sheetIndex = 3)
+d2017 <- read.xlsx2("best_cities.xlsx", sheetIndex = 2)
+d2018 <- read.xlsx2("best_cities.xlsx", sheetIndex = 1)
+```
+
+### Looking at the data.
+
+```{r head, cache=TRUE}
+str(d2014)
+str(d2015)
+str(d2016)
+str(d2017)
+str(d2018)
+```
+
+### Preparing the data:
+
+* Adding a year variable.
+* Eliminating the rank variable.
+* Change quality_living for desirability in 2014.
+* Turning numeric variables to numeric.
+* Adding student view variable to 2014-2016 data frames.
+* Pasting the 5 data frames.
+
+```{r year, cache=TRUE}
+d2014$rank <- "2014"
+d2014$student_view <- "0"
+colnames(d2014) <- c("rank", "city", "overall", "rankings", "student_mix", "desirability", "emp_activity", "affordability", "student_view")
+d2015$rank <- "2015"
+d2015$student_view <- "0"
+d2016$rank <- "2016"
+d2016$student_view <- "0"
+d2017$rank <- "2017"
+d2018$rank <- "2018"
+data <- rbind(d2018,d2017,d2016,d2015,d2014)
+colnames(data) <- c("year", "city", "overall", "rankings", "student_mix", "desirability", "emp_activity", "affordability", "student_view")
+
+# Looking at the data
+
+head(data)
+str(data)
+
+# Turning variables to numeric
+
+for(i in c(1,3:9)){
+    data[,i] <- as.numeric(as.character(data[,i]))
+}
+str(data)
+
+# Checking for NA's
+
+sum(is.na(data$year))
+sum(is.na(data$city))
+sum(is.na(data$overall))
+sum(is.na(data$rankings))
+sum(is.na(data$student_mix))
+sum(is.na(data$desirability))
+sum(is.na(data$emp_activity))
+sum(is.na(data$affordability))
+sum(is.na(data$student_view))
+
+# Exporting a xlsx file
+
+write.xlsx2(data, "cityData.xlsx", sheetName = "panel", row.names = FALSE)
+```
+
+### First Data regression.
+
+```{r fit, cache= TRUE}
+fit <- lm(overall~rankings+student_view+desirability+emp_activity+affordability+student_view, data=data)
+summary(fit)
+```
+
+### Adding cities as factors.
+
+```{r fit1, cache= TRUE}
+fit1 <- lm(overall~rankings+student_view+desirability+emp_activity+affordability+student_view+city, data=data)
+summary(fit1)$coef
+```
+
+### Adding year as factor.
+
+```{r fit2, cache= TRUE}
+fit2 <- lm(overall~rankings+student_view+desirability+emp_activity+affordability+student_view+city+factor(year), data=data)
+summary(fit2)$coef
+```
