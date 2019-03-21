@@ -105,5 +105,21 @@ summary(fit1)$coef
 
 ```{r fit2, cache= TRUE}
 fit2 <- lm(overall~rankings+student_view+desirability+emp_activity+affordability+student_view+city+factor(year), data=data)
-summary(fit2)$coef
+summary(fit2)
+```
+
+### Using Mexico City as reference.
+
+```{r fit3, cache=TRUE}
+mexico <- relevel(data$city, "Mexico City")
+fit3 <- lm(overall~rankings+student_view+desirability+emp_activity+affordability+student_view+mexico+factor(year), data=data)
+summary(fit3)
+```
+
+### Using London as reference.
+
+```{r fit4, cache=TRUE}
+london <- relevel(data$city, "London")
+fit4 <- lm(overall~rankings+student_view+desirability+emp_activity+affordability+student_view+london+factor(year), data=data)
+summary(fit4)
 ```

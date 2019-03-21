@@ -1,0 +1,190 @@
+---
+title: "Cross Validation"
+author: "Ana Real"
+date: "March 20, 2019"
+output: 
+  html_document:
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## This part of the project makes cross validation.
+
+The idea is to have a set of trainning years and then a test set in the remaining year.
+
+We are going to try holding four years and test in the remaining year. First leaving 2018 all the way to 2014 and try to guess a country in particular. In this case Toronto sice it appears all years.
+
+We are using Mexico City as reference.
+
+### Holdout : 2018
+
+Training
+
+```{r train1, cache=TRUE}
+library(xlsx)
+data <- read.xlsx2("cityData.xlsx", sheetIndex = 1)
+for(i in c(1,3:9)){
+    data[,i] <- as.numeric(as.character(data[,i]))
+}
+str(data)
+# Removing 2018
+
+
+data1 <- data[data$year!=2018,]
+
+str(data1)
+# Fitting the model
+
+mexico <- relevel(data1$city, "Mexico City")
+fit <- lm(overall~rankings+student_view+desirability+emp_activity+affordability+student_view+mexico+factor(year), data=data1)
+summary(fit)
+coef1 <- summary(fit)$coef
+```
+
+Wtih this result we get the equation for Toronto: $0.96\times rankings + 1.03\times studentView + 0.87\times desirability + 1.19\times empActivity + 1.1\times affordability + 75.12 (Intercept)-13.39 (Toronto) = score$.
+Substituting in out equation the 2018 data for Toronto.
+
+```{r test1, cache=TRUE}
+toronto2018 <- data[data$city=="Toronto"&data$year==2018,]
+
+score <- coef1[2,1]*toronto2018$rankings + coef1[3,1]*toronto2018$student_view + coef1[4,1]*toronto2018$desirability + coef1[5,1]*toronto2018$emp_activity + coef1[6,1]*toronto2018$affordability + coef1[1,1] -13.39
+score
+toronto2018$overall
+
+# Calculating the error
+
+abs((score-toronto2018$overall)/toronto2018$overall)*100
+```
+
+
+### Holdout 2017:
+
+Training
+
+```{r train2, cache=TRUE}
+
+# Removing 2017
+
+data2 <- data[data$year!=2017,]
+
+str(data2)
+# Fitting the model
+
+mexico <- relevel(data2$city, "Mexico City")
+fit1 <- lm(overall~rankings+student_view+desirability+emp_activity+affordability+student_view+mexico+factor(year), data=data2)
+summary(fit1)
+coef2 <- summary(fit1)$coef
+```
+
+
+```{r test2, cache=TRUE}
+toronto2017 <- data[data$city=="Toronto"&data$year==2017,]
+
+score <- coef2[2,1]*toronto2017$rankings + coef2[3,1]*toronto2017$student_view + coef2[4,1]*toronto2017$desirability + coef2[5,1]*toronto2017$emp_activity + coef2[6,1]*toronto2017$affordability + coef2[1,1] -11.58
+score
+toronto2017$overall
+
+# Calculating the error
+
+abs((score-toronto2017$overall)/toronto2017$overall)*100
+```
+
+
+### Holdout 2016:
+
+Training
+
+```{r train3, cache=TRUE}
+
+# Removing 2017
+
+data3 <- data[data$year!=2016,]
+
+str(data3)
+# Fitting the model
+
+mexico <- relevel(data3$city, "Mexico City")
+fit3 <- lm(overall~rankings+student_view+desirability+emp_activity+affordability+student_view+mexico+factor(year), data=data3)
+summary(fit3)
+coef3 <- summary(fit3)$coef
+```
+
+
+```{r test3, cache=TRUE}
+toronto2016 <- data[data$city=="Toronto"&data$year==2016,]
+
+score <- coef3[2,1]*toronto2016$rankings + coef3[3,1]*toronto2016$student_view + coef3[4,1]*toronto2016$desirability + coef3[5,1]*toronto2016$emp_activity + coef3[6,1]*toronto2016$affordability + coef3[1,1] -8.97
+score
+toronto2016$overall
+
+# Calculating the error
+
+abs((score-toronto2016$overall)/toronto2016$overall)*100
+```
+
+### Holdout 2015:
+
+Training
+
+```{r train4, cache=TRUE}
+
+# Removing 2017
+
+data4 <- data[data$year!=2015,]
+
+str(data4)
+# Fitting the model
+
+mexico <- relevel(data4$city, "Mexico City")
+fit4 <- lm(overall~rankings+student_view+desirability+emp_activity+affordability+student_view+mexico+factor(year), data=data4)
+summary(fit4)
+coef4 <- summary(fit4)$coef
+```
+
+
+```{r test4, cache=TRUE}
+toronto2015 <- data[data$city=="Toronto"&data$year==2015,]
+
+score <- coef4[2,1]*toronto2015$rankings + coef4[3,1]*toronto2015$student_view + coef4[4,1]*toronto2015$desirability + coef4[5,1]*toronto2015$emp_activity + coef4[6,1]*toronto2015$affordability + coef4[1,1] -6.07
+score
+toronto2015$overall
+
+# Calculating the error
+
+abs((score-toronto2015$overall)/toronto2015$overall)*100
+```
+
+### Holdout 2014:
+
+Training
+
+```{r train5, cache=TRUE}
+
+# Removing 2017
+
+data5 <- data[data$year!=2014,]
+
+str(data5)
+# Fitting the model
+
+mexico <- relevel(data5$city, "Mexico City")
+fit5 <- lm(overall~rankings+student_view+desirability+emp_activity+affordability+student_view+mexico+factor(year), data=data5)
+summary(fit5)
+coef5 <- summary(fit5)$coef
+```
+
+
+```{r test5, cache=TRUE}
+toronto2014 <- data[data$city=="Toronto"&data$year==2014,]
+
+score <- coef5[2,1]*toronto2014$rankings + coef5[3,1]*toronto2014$student_view + coef5[4,1]*toronto2014$desirability + coef5[5,1]*toronto2014$emp_activity + coef5[6,1]*toronto2014$affordability + coef5[1,1] -6.07
+score
+toronto2014$overall
+
+# Calculating the error
+
+abs((score-toronto2014$overall)/toronto2014$overall)*100
+```
