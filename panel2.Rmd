@@ -1,0 +1,69 @@
+---
+title: "Regression 2"
+author: "Ana Real and Rodrigo Careaga"
+date: "March 26, 2019"
+output: 
+  html_document:
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Getting the regression.
+
+For this experiment we are going to use the median of the student_view variable from years 2017 and 2018 for the rest of the years and adding it to the final score.
+
+### Loading the data
+
+```{r load}
+library(xlsx)
+data <- read.xlsx2("./cityData.xlsx", sheetIndex = 1)
+for (i in 3:9){
+    data[,i] <- as.numeric(as.character(data[,i]))
+}
+
+for (j in 4:9){
+    for (i in 202:276){
+        data[i,j] <- ceiling(data[i,j])
+    }
+}
+
+str(data)
+```
+
+### Calculating the median from student view and pasting it to a final data set.
+
+```{r data}
+
+student <- data[data$year=="2018",c("city","student_view")]
+student1 <- data[data$year=="2017",c("city","student_view")]
+for (j in 1:length(student$city)){
+    for(i in 1:length(student1$city)){
+        if(student$city[j]==student1$city[i]){
+            student$student_view[j] <- ceiling(median(student$student_view[j]:student1$student_view[i]))
+        }
+    }
+}
+
+for (i in 202:376){
+    for (j in 1:101){
+        if(student$city[j]==data$city[i]){
+            data$student_view[i] <- student$student_view[j]
+        }
+    }
+}
+
+for (i in 1:376){
+    data$overall[i] <- sum(data[i,4:9], na.rm = TRUE)
+}
+
+summary(data)
+```
+
+### Exporting data frame.
+
+```{r export}
+write.xlsx2(data, "city.xlsx", sheetName = "panel", row.names = FALSE)
+```
