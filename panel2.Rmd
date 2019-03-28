@@ -17,15 +17,39 @@ For this experiment we are going to use the median of the student_view variable 
 
 ### Loading the data
 
-```{r load}
+```{r load, cache=TRUE}
 library(xlsx)
 data <- read.xlsx2("./cityData.xlsx", sheetIndex = 1)
 for (i in 3:9){
     data[,i] <- as.numeric(as.character(data[,i]))
 }
 
+
+```
+
+### Working with some missing values
+
+```{r nas, cache=TRUE}
+# Hong Kong 2014 had a NA for ranking, we get that value by calculating the difference between the overall and the rest of the variables.
+data[333,"rankings"] <- data[333,"overall"]-sum(data[333,c(5:9)])
+
+# Same for Chicago
+
+data[349,"rankings"] <- data[349,"overall"]-sum(data[349,c(5:9)])
+
+# For Philadelphia we just know the overall, to get the values of the rest of the variables we are extracting the values of the rest of the United States' cities and get an average percentage for each variable and multiplied to get the overall we know.
+
+UScities <- data[(data$city=="Boston"|data$city=="San Francisco"|data$city=="New York"|data$city=="Washington DC"|data$city=="Los Angeles"|data$city=="Chicago")&data$year==2014,c(3:9)]
+
+perc <- apply(UScities,1,function(x){x[2:7]/x[1]})
+num <- apply(perc,1,mean)
+data[370,c(4:9)] <- data[370,3]*num
+
+# Kyoto in 2014
+data[376,6] <- data[376,"overall"]-sum(data[376,c(4,5,7,8)])
+
 for (j in 4:9){
-    for (i in 202:276){
+    for (i in 1:376){
         data[i,j] <- ceiling(data[i,j])
     }
 }
@@ -35,7 +59,7 @@ str(data)
 
 ### Calculating the median from student view and pasting it to a final data set.
 
-```{r data}
+```{r data, cache=TRUE}
 
 student <- data[data$year=="2018",c("city","student_view")]
 student1 <- data[data$year=="2017",c("city","student_view")]
@@ -64,6 +88,22 @@ summary(data)
 
 ### Exporting data frame.
 
-```{r export}
+```{r export, cache=TRUE}
 write.xlsx2(data, "city.xlsx", sheetName = "panel", row.names = FALSE)
+```
+
+### New linear regression.
+
+```{r fit, fig.height=8, fig.width=8}
+str(data)
+sum(is.na(data))
+data$city <- as.factor(data$city)
+data1 <- data[data$year!=2018,]
+mexico <- relevel(data1$city, "Mexico City")
+fit <- lm(overall~rankings+student_view+desirability+emp_activity+affordability+student_view+factor(year), data=data)
+summary(fit)
+
+# Diagnostic of residuals.
+par(mfrow=c(2,2))
+plot(fit)
 ```
