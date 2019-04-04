@@ -19,6 +19,7 @@ For this experiment we are going to use the median of the student_view variable 
 
 ```{r load, cache=TRUE}
 library(xlsx)
+
 data <- read.xlsx2("./cityData.xlsx", sheetIndex = 1)
 for (i in 3:9){
     data[,i] <- as.numeric(as.character(data[,i]))
@@ -95,15 +96,35 @@ write.xlsx2(data, "city.xlsx", sheetName = "panel", row.names = FALSE)
 ### New linear regression.
 
 ```{r fit, fig.height=8, fig.width=8}
+library(knitr)
 str(data)
 sum(is.na(data))
 data$city <- as.factor(data$city)
 data1 <- data[data$year!=2018,]
-mexico <- relevel(data1$city, "Mexico City")
-fit <- lm(overall~rankings+student_view+desirability+emp_activity+affordability+student_view+factor(year), data=data)
+fit <- lm(overall~rankings+student_view+desirability+emp_activity+affordability+student_view+city, data=data1)
 summary(fit)
 
 # Diagnostic of residuals.
 par(mfrow=c(2,2))
 plot(fit)
+
+# Prediction
+test <- data[data$year==2018,]
+
+# Removing some cities that did not appear before 2018 and the model cannot predict
+data2 <- test[-grep("Aberdeen",test$city),]
+data2 <- data2[-grep("Brighton",data2$city),]
+data2 <- data2[-grep("Cape Town",data2$city),]
+data2 <- data2[-grep("Dubai-Sharjah-Ajman",data2$city),]
+data2 <- data2[-grep("Graz",data2$city),]
+data2 <- data2[-grep("Miami",data2$city),]
+data2 <- data2[-grep("Nagoya",data2$city),]
+data2 <- data2[-grep("Stuttgart",data2$city),]
+result <- predict(fit, data2)
+error <- paste(abs(result-data2[,"overall"])/data2[,"overall"]*100,"%")
+set <- cbind(as.character(data2[,"city"]),data2[,"overall"],result,error)
+colnames(set) <- c("City", "Test", "Predicted", "Error")
+summary(abs(result-data2[,"overall"])/data2[,"overall"]*100)
+kable(set)
 ```
+
