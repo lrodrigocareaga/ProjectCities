@@ -3,8 +3,7 @@ title: "Machine Learning with groups"
 author: "Ana Real"
 date: "June 4, 2019"
 output: 
-  html_document:
-    keep_md: true
+  pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -24,7 +23,7 @@ library(ggcorrplot)
 library(corrplot)
 library(pROC)
 
-data <- read.xlsx2("final.xlsx", sheetIndex = 1)
+data <- read.xlsx2("../final.xlsx", sheetIndex = 1)
 
 for(i in c(1,2,4:10)){
     data[,i] <- as.numeric(as.character(data[,i]))
@@ -108,7 +107,7 @@ train_control <- trainControl(method="repeatedcv", number=10, repeats=3)
 
 ## Decision Trees
 
-```{r trees, cache=TRUE}
+```{r trees, cache=TRUE, fig.height=3, fig.width=3}
 trees <- train(Top~Student.View+Employer.Activity+Desirability+Rankings+Student.Mix+Affordability+factor(Year), data = training, trControl=train_control, method = "rpart")
 pred_trees <- predict(trees,testing)
 confusionMatrix(pred_trees, testing$Top)$table
@@ -124,7 +123,7 @@ plot.roc(testing_Top, pred_trees, print.auc=TRUE)
 
 ## Random Forest
 
-```{r rforest, cache=TRUE}
+```{r rforest, cache=TRUE, fig.height=3, fig.width=3}
 randf <- train(Top~Student.View+Employer.Activity+Desirability+Rankings+Student.Mix+Affordability+factor(Year), data = training, trControl=train_control, method = "rf")
 pred_randf <- predict(randf,testing)
 confusionMatrix(pred_randf, testing$Top)$table
@@ -137,7 +136,7 @@ plot.roc(testing_Top, pred_randf, print.auc=TRUE)
 
 ## Support Vector Machine Linear
 
-```{r svml, cache=TRUE}
+```{r svml, cache=TRUE, fig.height=3, fig.width=3}
 svml <- train(Top~Student.View+Employer.Activity+Desirability+Rankings+Student.Mix+Affordability+factor(Year), data = training, trControl=train_control, method = "svmLinear")
 pred_svml <- predict(svml,testing)
 confusionMatrix(pred_svml, testing$Top)$table
@@ -150,7 +149,7 @@ plot.roc(testing_Top, pred_svml, print.auc=TRUE)
 
 ## Support Vector Machine Radial
 
-```{r svmr, cache=TRUE}
+```{r svmr, cache=TRUE, fig.height=3, fig.width=3}
 svmr <- train(Top~Student.View+Employer.Activity+Desirability+Rankings+Student.Mix+Affordability+factor(Year), data = training, trControl=train_control, method = "svmRadial")
 pred_svmr <- predict(svmr,testing)
 confusionMatrix(pred_svmr, testing$Top)$table
@@ -163,7 +162,7 @@ plot.roc(testing_Top, pred_svmr, print.auc=TRUE)
 
 ## Neural Networks
 
-```{r nnet, cache=TRUE}
+```{r nnet, cache=TRUE, fig.height=3, fig.width=3}
 # Neural Networks
 nbc <- train(Top~Student.View+Employer.Activity+Desirability+Rankings+Student.Mix+Affordability+factor(Year), data = training, trControl=train_control, method = "nnet", trace = FALSE, tuneGrid=expand.grid(size=c(10), decay=c(0.1)))
 pred_nbc <- predict(nbc,testing)
