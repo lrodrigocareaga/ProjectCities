@@ -1,0 +1,68 @@
+---
+title: "Prediction Cities"
+author: "Ana Real"
+date: "June 4, 2019"
+output: 
+  html_document:
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## In this work we will run the prediction for cities 100 times.
+
+## Read data
+
+```{r read, warning=FALSE}
+library(xlsx)
+library(ggpubr)
+library(DescTools)
+library(xtable)
+library(caret)
+library(DMwR)
+library(ggcorrplot)
+library(corrplot)
+
+data <- read.xlsx2("final.xlsx", sheetIndex = 1)
+
+for(i in c(1,2,4:10)){
+    data[,i] <- as.numeric(as.character(data[,i]))
+}
+
+colnames(data) <- c("Year", "Rank", "City", "Overall", "Rankings", "Student.Mix", "Desirability", "Employer.Activity", "Affordability", "Student.View")
+```
+
+## Prediction for 2019
+
+```{r pred}
+library(knitr)
+data10 <- data[data$City=="London"|data$City=="Tokyo"|data$City=="Melbourne"|data$City=="Montreal"|data$City=="Paris"|data$City=="Munich"|data$City=="Berlin"|data$City=="Zurich"|data$City=="Sydney"|data$City=="Seoul",]
+
+lm_rank <- lm(Rankings~Year+factor(City), data = data10)
+lm_mix <- lm(Student.Mix~Year+factor(City), data = data10)
+lm_desir <- lm(Desirability~Year+factor(City), data = data10)
+lm_emp <- lm(Employer.Activity~Year+factor(City), data = data10)
+lm_aff <- lm(Affordability~Year+factor(City), data = data10)
+lm_view <- lm(Student.View~Year+factor(City), data = data10)
+
+test10 <- data.frame(City=c("London", "Tokyo", "Melbourne", "Montreal", "Paris", "Munich", "Berlin", "Zurich", "Sydney", "Seoul"), Year = c(2019,2019,2019,2019,2019,2019,2019,2019,2019,2019))
+rownames(test10) <- c("London", "Tokyo", "Melbourne", "Montreal", "Paris", "Munich", "Berlin", "Zurich", "Sydney", "Seoul")
+pred_rank <- predict(lm_rank, test10)
+pred_mix <- predict(lm_mix, test10)
+pred_desir <- predict(lm_desir, test10)
+pred_emp <- predict(lm_emp, test10)
+pred_aff <- predict(lm_aff, test10)
+pred_view <- predict(lm_view, test10)
+
+pred_overall <- pred_rank + pred_mix + pred_desir + pred_emp + pred_aff + pred_view
+
+pred_total <- data.frame(test10,Rankings=pred_rank, Student.Mix=pred_mix, Desirability=pred_desir, Employer.Activity=pred_emp, Affordability=pred_aff, Student.View=pred_view, Overall=pred_overall)
+
+pred_total <- pred_total[order(-pred_total$Overall),]
+write.xlsx2(pred_total, "prediction.xlsx", sheetName = "panel", row.names = FALSE)
+library(xtable)
+#print(xtable(pred_total, type = "latex"), file = "table1.tex")
+kable(pred_total)
+```

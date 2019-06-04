@@ -1,0 +1,241 @@
+---
+title: "London"
+author: "Ana Real"
+date: "June 4, 2019"
+output: 
+  html_document:
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## This work separates the universities in tops from the overall Rank variable:
+
+* Top10 1-10.
+* Top20 11-20.
+* Top30 21-30.
+* Top40 31-40.
+* Top50 41-50.
+* Top60 51-60.
+* Top70 61-70.
+* Top80 71-80.
+* Top90 81-90.
+* Top100 91-100.
+
+Then some correlation plots were exported using this variables as groups.
+
+## Read data
+
+```{r read, warning=FALSE}
+library(xlsx)
+library(ggpubr)
+library(DescTools)
+library(xtable)
+library(caret)
+library(DMwR)
+library(ggcorrplot)
+library(corrplot)
+
+data <- read.xlsx2("final.xlsx", sheetIndex = 1)
+
+for(i in c(1,2,4:10)){
+    data[,i] <- as.numeric(as.character(data[,i]))
+}
+
+colnames(data) <- c("Year", "Rank", "City", "Overall", "Rankings", "Student.Mix", "Desirability", "Emp.Activity", "Affordability", "Student.View")
+
+# Adding variable for top universities
+
+data$Top <- data$Rank
+
+for (i in 1:376){
+    if (data$Rank[i] <= 10){
+        data$Top[i] <- "Top10"
+    } else if (data$Rank[i] > 10 & data$Rank[i] <= 20){
+        data$Top[i] <- "Top20"
+    } else if (data$Rank[i] > 20 & data$Rank[i] <= 30){
+        data$Top[i] <- "Top30"
+    } else if (data$Rank[i] > 30 & data$Rank[i] <= 40){
+        data$Top[i] <- "Top40"
+    } else if (data$Rank[i] > 40 & data$Rank[i] <= 50){
+        data$Top[i] <- "Top50"
+    } else if (data$Rank[i] > 50 & data$Rank[i] <= 60){
+        data$Top[i] <- "Top60"
+    } else if (data$Rank[i] > 60 & data$Rank[i] <= 70){
+        data$Top[i] <- "Top70"
+    } else if (data$Rank[i] > 70 & data$Rank[i] <= 80){
+        data$Top[i] <- "Top80"
+    } else if (data$Rank[i] > 80 & data$Rank[i] <= 90){
+        data$Top[i] <- "Top90"
+    } else {
+        data$Top[i] <- "Top100"
+    }
+}
+    
+data$Top <- as.factor(data$Top)
+str(data)
+```
+
+### Gruop Top10, top 10 cities.
+
+```{r corr1, fig.height=5, fig.width=5, warning=FALSE}
+# Using spearman
+
+corr1 <- cor(data[data$Top=="Top10",c(4:10)], method="spearman")
+
+ggcorrplot(corr1, lab = TRUE)
+
+```
+
+Some cities in this group:
+* London
+* Paris
+* Tokyo
+
+
+### Gruop Top20, cities from 11-20.
+
+```{r corr2, fig.height=5, fig.width=5, warning=FALSE}
+# Using spearman
+
+corr2 <- cor(data[data$Top=="Top20",c(4:10)], method="spearman")
+
+ggcorrplot(corr2, lab = TRUE)
+
+```
+
+Some cities in this group:
+
+* Seoul
+* Toronto
+* New York
+
+### Gruop Top30, cities from 21-30.
+
+```{r corr3, fig.height=5, fig.width=5, warning=FALSE}
+# Using spearman
+
+corr3 <- cor(data[data$Top=="Top30",c(4:10)], method="spearman")
+
+ggcorrplot(corr3, lab = TRUE)
+
+```
+
+Some cities in this group:
+* Canberra
+* Auckland
+* Prague
+
+### Gruop Top40, cities from 31-40.
+
+```{r corr4, fig.height=5, fig.width=5, warning=FALSE}
+# Using spearman
+
+corr4 <- cor(data[data$Top=="Top40",c(4:10)], method="spearman")
+
+ggcorrplot(corr4, lab = TRUE)
+
+```
+
+Some cities in this group:
+* Barcelona
+* Los Angeles
+* Milan
+
+### Gruop Top50,  cities from 41-50.
+
+```{r corr5, fig.height=5, fig.width=5, warning=FALSE}
+# Using spearman
+
+corr5 <- cor(data[data$Top=="Top50",c(4:10)], method="spearman")
+
+ggcorrplot(corr5, lab = TRUE)
+
+```
+
+Some cities in this group:
+* Lyon
+* Ottawa
+* Budapest
+
+### Gruop Top60, cities from 51-60.
+
+```{r corr6, fig.height=5, fig.width=5, warning=FALSE}
+# Using spearman
+
+corr6 <- cor(data[data$Top=="Top60",c(4:10)], method="spearman")
+
+ggcorrplot(corr6, lab = TRUE)
+
+```
+
+Some cities in this group:
+* Mexico City
+* Bangkok
+* Philadelphia
+
+### Gruop Top70, cities from 61-70.
+
+```{r corr7, fig.height=5, fig.width=5, warning=FALSE}
+# Using spearman
+
+corr7 <- cor(data[data$Top=="Top70",c(4:10)], method="spearman")
+
+ggcorrplot(corr7, lab = TRUE)
+
+```
+
+Some cities in this group:
+* Dubai
+* Oslo
+* Rome
+
+### Gruop Top80, cities from 71-80.
+
+```{r corr8, fig.height=5, fig.width=5, warning=FALSE}
+# Using spearman
+
+corr8 <- cor(data[data$Top=="Top80",c(4:10)], method="spearman")
+
+ggcorrplot(corr8, lab = TRUE)
+
+```
+
+Some cities in this group:
+* Cape Town
+* Athens
+* Toulouse
+
+### Gruop Top90, cities from 81-90.
+
+```{r corr9, fig.height=5, fig.width=5, warning=FALSE}
+# Using spearman
+
+corr9 <- cor(data[data$Top=="Top90",c(4:10)], method="spearman")
+
+ggcorrplot(corr9, lab = TRUE)
+
+```
+
+Some cities in this group:
+* Bogota
+* Monterrey
+* Nanjing
+
+### Gruop Top100, cities from 91-100.
+
+```{r corr10, fig.height=5, fig.width=5, warning=FALSE}
+# Using spearman
+
+corr10 <- cor(data[data$Top=="Top100",c(4:10)], method="spearman")
+
+ggcorrplot(corr10, lab = TRUE)
+
+```
+
+Some cities in this group:
+* Mainla
+* Mumbai
+* Rio de Janeiro

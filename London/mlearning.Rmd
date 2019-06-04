@@ -1,0 +1,177 @@
+---
+title: "Machine Learning with groups"
+author: "Ana Real"
+date: "June 4, 2019"
+output: 
+  html_document:
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Read data
+
+```{r read, warning=FALSE}
+library(xlsx)
+library(ggpubr)
+library(DescTools)
+library(xtable)
+library(caret)
+library(DMwR)
+library(ggcorrplot)
+library(corrplot)
+library(pROC)
+
+data <- read.xlsx2("final.xlsx", sheetIndex = 1)
+
+for(i in c(1,2,4:10)){
+    data[,i] <- as.numeric(as.character(data[,i]))
+}
+
+colnames(data) <- c("Year", "Rank", "City", "Overall", "Rankings", "Student.Mix", "Desirability", "Employer.Activity", "Affordability", "Student.View")
+
+# Adding variable for top universities
+
+data$Top <- data$Rank
+
+for (i in 1:376){
+    if (data$Rank[i] <= 10){
+        data$Top[i] <- "Top10"
+    } else if (data$Rank[i] > 10 & data$Rank[i] <= 20){
+        data$Top[i] <- "Top20"
+    } else if (data$Rank[i] > 20 & data$Rank[i] <= 30){
+        data$Top[i] <- "Top30"
+    } else if (data$Rank[i] > 30 & data$Rank[i] <= 40){
+        data$Top[i] <- "Top40"
+    } else if (data$Rank[i] > 40 & data$Rank[i] <= 50){
+        data$Top[i] <- "Top50"
+    } else if (data$Rank[i] > 50 & data$Rank[i] <= 60){
+        data$Top[i] <- "Top60"
+    } else if (data$Rank[i] > 60 & data$Rank[i] <= 70){
+        data$Top[i] <- "Top70"
+    } else if (data$Rank[i] > 70 & data$Rank[i] <= 80){
+        data$Top[i] <- "Top80"
+    } else if (data$Rank[i] > 80 & data$Rank[i] <= 90){
+        data$Top[i] <- "Top90"
+    } else {
+        data$Top[i] <- "Top100"
+    }
+}
+    
+data$Top <- as.factor(data$Top)
+str(data)
+
+cat2numt <- function(x){
+    x <- as.character(x)
+    for (i in 1:108){
+        if (x[i]=="Top10"){
+            x[i] <- 10
+        } else if (x[i]=="Top20"){
+            x[i] <- 20
+        } else if (x[i]=="Top30"){
+            x[i] <- 30
+        } else if (x[i]=="Top40"){
+            x[i] <- 40
+        } else if (x[i]=="Top50"){
+            x[i] <- 50
+        } else if (x[i]=="Top60"){
+            x[i] <- 60
+        } else if (x[i]=="Top70"){
+            x[i] <- 70
+        } else if (x[i]=="Top80"){
+            x[i] <- 80
+        } else if (x[i]=="Top90"){
+            x[i] <- 90
+        } else {
+            x[i] <- 100
+        }
+    }
+    x <- as.numeric(x)
+    x
+}
+```
+
+## Preparing data
+
+```{r cat}
+set.seed(112)
+inTrain <- createDataPartition(y=data$Top, times = 1, p = 0.7, list = FALSE)
+training <- data[inTrain,]
+testing <- data[-inTrain,]
+dim(training)
+dim(testing)
+
+train_control <- trainControl(method="repeatedcv", number=10, repeats=3)
+```
+
+## Decision Trees
+
+```{r trees, cache=TRUE}
+trees <- train(Top~Student.View+Employer.Activity+Desirability+Rankings+Student.Mix+Affordability+factor(Year), data = training, trControl=train_control, method = "rpart")
+pred_trees <- predict(trees,testing)
+confusionMatrix(pred_trees, testing$Top)$table
+confusionMatrix(pred_trees, testing$Top)$overall[1]
+print(trees)
+
+testing_Top <- cat2numt(testing$Top)
+# Trees
+pred_trees <- cat2numt(pred_trees)
+# Testing set
+plot.roc(testing_Top, pred_trees, print.auc=TRUE)
+```
+
+## Random Forest
+
+```{r rforest, cache=TRUE}
+randf <- train(Top~Student.View+Employer.Activity+Desirability+Rankings+Student.Mix+Affordability+factor(Year), data = training, trControl=train_control, method = "rf")
+pred_randf <- predict(randf,testing)
+confusionMatrix(pred_randf, testing$Top)$table
+confusionMatrix(pred_randf, testing$Top)$overall[1]
+print(randf)
+
+pred_randf <- cat2numt(pred_randf)
+plot.roc(testing_Top, pred_randf, print.auc=TRUE)
+```
+
+## Support Vector Machine Linear
+
+```{r svml, cache=TRUE}
+svml <- train(Top~Student.View+Employer.Activity+Desirability+Rankings+Student.Mix+Affordability+factor(Year), data = training, trControl=train_control, method = "svmLinear")
+pred_svml <- predict(svml,testing)
+confusionMatrix(pred_svml, testing$Top)$table
+confusionMatrix(pred_svml, testing$Top)$overall[1]
+print(svml)
+
+pred_svml <- cat2numt(pred_svml)
+plot.roc(testing_Top, pred_svml, print.auc=TRUE)
+```
+
+## Support Vector Machine Radial
+
+```{r svmr, cache=TRUE}
+svmr <- train(Top~Student.View+Employer.Activity+Desirability+Rankings+Student.Mix+Affordability+factor(Year), data = training, trControl=train_control, method = "svmRadial")
+pred_svmr <- predict(svmr,testing)
+confusionMatrix(pred_svmr, testing$Top)$table
+confusionMatrix(pred_svmr, testing$Top)$overall[1]
+print(svmr)
+
+pred_svmr <- cat2numt(pred_svmr)
+plot.roc(testing_Top, pred_svmr, print.auc=TRUE)
+```
+
+## Neural Networks
+
+```{r nnet, cache=TRUE}
+# Neural Networks
+nbc <- train(Top~Student.View+Employer.Activity+Desirability+Rankings+Student.Mix+Affordability+factor(Year), data = training, trControl=train_control, method = "nnet", trace = FALSE, tuneGrid=expand.grid(size=c(10), decay=c(0.1)))
+pred_nbc <- predict(nbc,testing)
+confusionMatrix(pred_nbc, testing$Top)$table
+confusionMatrix(pred_nbc, testing$Top)$overall[1]
+print(nbc)
+
+pred_nbc <- cat2numt(pred_nbc)
+plot.roc(testing_Top, pred_nbc, print.auc=TRUE)
+```
+
